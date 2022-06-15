@@ -8,6 +8,14 @@ from pycbrf import ExchangeRates
 
 
 def parce(vacancy, pages='3', where='all'):
+    """
+    Обработка данных по вакансиям, получение средней верхней и нижней границы зарплат
+     и процентного отношения для каждого навыка.
+    :param vacancy: текст поиска в вакансиях.
+    :param pages: количество анализируемых страниц.
+    :param where: место поиска текста.
+    :return: словарь с результатами анализа вакансий.
+    """
     url = 'https://api.hh.ru/vacancies'
     rate = ExchangeRates()
     p = {'text': vacancy if where == 'all' else f'NAME: {vacancy}' if where == 'name' else f'COMPANY_NAME: {vacancy}'}
@@ -35,8 +43,10 @@ def parce(vacancy, pages='3', where='all'):
             city_vac = res['area']['name']
             con = connect('base.db')
             cur = con.cursor()
+            # проверка наличия города в таблице
             rest = cur.execute('select id from area where area.name = ?', (city_vac,)).fetchone()
             if not rest:
+                # добавление строки в таблицу регионов.
                 cur.execute('insert into area values (null, ?, ?)', (city_vac, res['area']['id']))
                 con.commit()
             con.close()

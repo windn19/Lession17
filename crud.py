@@ -2,17 +2,25 @@ from sqlite3 import connect
 
 
 def add_words(cur, new):
+    """
+    Добавление или редактирование строки в таблице со строками поиска.
+    :param cur: передача курсора доступа к базе данных.
+    :param new: словарь с данными.
+    :return: Курсор доступа к базе
+    """
     cur.execute('select * from words where words.word = ?', (new['keywords'],))
     res = cur.fetchone()
     print(res)
     if res:
         if res[2] < new['count']:
+            # обновление строки таблицы
             cur.execute('update words set count = ?, up = ?, down = ? where words.id = ?',
                         (new['count'], new['up'], new['down'], res[0]))
             print('Edit')
         else:
             print('Not edit')
     else:
+        # добавление строки в таблице
         cur.execute('insert into words values (null, ?, ?, ?, ?)',
                     (new['keywords'], new['count'], new['up'], new['down']))
         print('Done')
@@ -20,6 +28,12 @@ def add_words(cur, new):
 
 
 def add_skills(cur, new):
+    """
+    Добавление строки в таблицу навыков.
+    :param cur: объект курсора доступа к базе данных.
+    :param new: словарь данных с результатами обработки.
+    :return: курсор доступа к базе данных.
+    """
     for item in new['requirements']:
         res = cur.execute('select * from skills where skills.name = ?', (item['name'],))
         if not res.fetchone():
@@ -29,6 +43,12 @@ def add_skills(cur, new):
 
 
 def add_ws(cur, new):
+    """
+    Добавление строки в сводную таблицу
+    :param cur: курсор доступа к базе данных.
+    :param new: словарь с данными обработки вакансий.
+    :return: курсор доступа к базе данных.
+    """
     cur.execute('select id, count from words where words.word = ?', (new['keywords'],))
     word_id, word_count = cur.fetchone()
     for item in new['requirements']:
@@ -51,6 +71,10 @@ def add_ws(cur, new):
 
 
 def add_row(new):
+    """
+    Добавление строк в таблицы.
+    :param new: словарь с результатами обработки вакансий
+    """
     con = connect('base.db')
     cur = con.cursor()
     cur = add_words(cur, new)
